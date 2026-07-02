@@ -1,0 +1,42 @@
+name: Build Shizuku-HSS APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install SDK components
+      run: |
+        sdkmanager "platform-tools" \
+                   "platforms;android-34" \
+                   "build-tools;34.0.0" \
+                   "ndk;21.4.7075529"
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+
+    - name: Build APK
+      run: ./gradlew :manager:assembleRelease
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Shizuku-HSS-APK
+        path: manager/build/outputs/apk/release/*.apk
